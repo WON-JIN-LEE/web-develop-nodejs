@@ -46,7 +46,12 @@ var app = http.createServer(function (request, response) {
                 var title = 'Welcome';
                 var description = 'Hello, Node.js';
                 var list = templateList(filelist);
-                var template = templateHTML(title, list, `<h2>${title}</h2>${description}`,`<a href="/create">create</a>`);
+                var template = templateHTML(
+                    title,
+                    list,
+                    `<h2>${title}</h2>${description}`,
+                    `<a href="/create">create</a>`
+                );
                 response.writeHead(200);
                 response.end(template);
             });
@@ -55,8 +60,21 @@ var app = http.createServer(function (request, response) {
                 fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
                     var title = queryData.id;
                     var list = templateList(filelist);
-                    var template = templateHTML(title, list, `<h2>${title}</h2>${description}`, `<a href="/create">create</a>
-    <a href="/update?id=${title}">update</a> `);
+                    var template = templateHTML(
+                        title,
+                        list,
+                        `<h2>${title}</h2>${description}`,
+                        `<a href="/create">create</a>
+                        <a href="/update?id=${title}">update</a> 
+                        
+                        <form action="delete_process" method="post">
+                        <input type="hidden" name="id" value="${title}">
+                        <input type="submit" value="delete">
+                        </form>
+                        
+                        
+                        `
+                    );
                     response.writeHead(200);
                     response.end(template);
                 });
@@ -64,7 +82,7 @@ var app = http.createServer(function (request, response) {
         }
     } else if (pathname === '/create') {
         fs.readdir('./data', function (error, filelist) {
-          const title = 'WEB - create';
+            const title = 'WEB - create';
             const list = templateList(filelist);
             var template = templateHTML(
                 title,
@@ -79,7 +97,9 @@ var app = http.createServer(function (request, response) {
               <input type="submit">
             </p>
           </form>
-        `,'');
+        `,
+                ''
+            );
             response.writeHead(200);
             response.end(template);
         });
@@ -110,12 +130,15 @@ var app = http.createServer(function (request, response) {
                 response.end();
             });
         });
-    } else if(pathname === '/update'){
-            fs.readdir('./data', function (error, filelist) {
-                fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
-                    var title = queryData.id;
-                    var list = templateList(filelist);
-                    var template = templateHTML(title, list, `<form action="/update_process" method='post'>
+    } else if (pathname === '/update') {
+        fs.readdir('./data', function (error, filelist) {
+            fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
+                var title = queryData.id;
+                var list = templateList(filelist);
+                var template = templateHTML(
+                    title,
+                    list,
+                    `<form action="/update_process" method='post'>
                     <input type="hidden" name="id" value="${title}">
                     <p><input type="text" name="title" placeholder="title" value="${title}"></p>
             <p>
@@ -124,14 +147,16 @@ var app = http.createServer(function (request, response) {
             <p>
               <input type="submit">
             </p>
-          </form>`, `<a href="/create">create</a>
-    <a href="/update?id=${title}">update</a> `);
-                    response.writeHead(200);
-                    response.end(template);
-                });
+          </form>`,
+                    `<a href="/create">create</a>
+    <a href="/update?id=${title}">update</a> `
+                );
+                response.writeHead(200);
+                response.end(template);
             });
+        });
     } else if (pathname === '/update_process') {
-         var body = '';
+        var body = '';
         request.on('data', function (data) {
             body = body + data;
 
@@ -146,39 +171,43 @@ var app = http.createServer(function (request, response) {
             var id = post.id;
             var title = post.title;
             var description = post.description;
-            
-            console.log(id)
-            console.log(title)
-            console.log(description)
-            
             fs.rename(`data/${id}`, `data/${title}`, function (err) {
-                
-                 //파일 Create
+
+                //파일 Create
                 fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
 
                     //redirection, 한글url 인코딩 방식
                     response.writeHead(302, {location: encodeURI(`/?id=${title}`)});
                     response.end();
                 });
-                    
             });
-
-            
-            /*
-            //파일 Create
-            fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
-
-                //redirection, 한글url 인코딩 방식
-                response.writeHead(302, {
-                    location: encodeURI(`/?id=${title}`)
-                });
-                // response.writeHead(302, {Location: `/?id=${title}`});
-                response.end();
-            });
-        */
         });
+
+    } else if (pathname === '/delete_process') {
+        var body = '';
+        request.on('data', function (data) {
+            body = body + data;
+
+            // Too much POST data, kill the connection! : 일정량 이상의 방대한 data가 들어오며 요청을 도중에
+            // 끝낸다.
+            if (body.length > 1e6)
+                request.destroy();
+        }
+        );
+        request.on('end', function () {
+            var post = qs.parse(body);
+            var id = post.id;
+
+            console.log(id)
+            fs.unlink(`data/${id}`, function (err) {
+                
+                    response.writeHead(302, {Location: `/`});
+                    response.end();
+            });
         
-        } else {
+
+        });
+    } else {
         response.writeHead(404);
         response.end('Not found');
     }
