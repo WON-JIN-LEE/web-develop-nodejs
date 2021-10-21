@@ -42,6 +42,7 @@ var app = http.createServer(function (request, response) {
                     var list = template.list(filelist);
                     var html = template.HTML(sanitizedTitle,list,
                         `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
+                        
                         `<a href="/create">create</a>
                         <a href="/update?id=${sanitizedTitle}">update</a> 
                         
@@ -64,16 +65,16 @@ var app = http.createServer(function (request, response) {
                 title,
                 list,
                 `
-        <form action="/create_process" method='post'>
-            <p><input type="text" name="title" placeholder="title"></p>
-            <p>
-              <textarea name="description" placeholder="description"></textarea>
-            </p>
-            <p>
-              <input type="submit">
-            </p>
-        </form>
-        `,
+                <form action="/create_process" method='post'>
+                    <p><input type="text" name="title" placeholder="title"></p>
+                    <p>
+                    <textarea name="description" placeholder="description"></textarea>
+                    </p>
+                    <p>
+                    <input type="submit">
+                    </p>
+                </form>
+                `,
                 ''
             );
             response.writeHead(200);
