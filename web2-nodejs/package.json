@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "express": "^4.17.1",
+    "mysql": "^2.18.1",
     "querystring": "^0.2.1",
     "sanitize-html": "^2.5.2"
   },
