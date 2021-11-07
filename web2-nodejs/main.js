@@ -57,15 +57,19 @@ var app = http.createServer(function (request, response) {
                 if (error) {
                     throw error;
                 }
-                db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function (error, topic) {
+                db.query(`SELECT * FROM topic LEFT JOIN author ON topic.author_id=author.id WHERE topic.id=?`,[queryData.id], function (error, topic) {
                    if (error) {
                     throw error;
-                }
+                    }
+                    
                     var title = topic[0].title;
                 var description = topic[0].description;
                 var list = template.list(topics);
-                 var html = template.HTML(title, list,
-            `<h2>${title}</h2>${description}`,
+                    var html = template.HTML(title, list,
+                        `<h2>${title}</h2>
+            ${description}
+            <p>by ${(topic[0].name).toUpperCase()}</p>`
+            ,
             ` <a href="/create">create</a>
                 <a href="/update?id=${queryData.id}">update</a>
                 <form action="delete_process" method="post">
@@ -100,8 +104,10 @@ var app = http.createServer(function (request, response) {
     //         });
         }
     } else if (pathname === '/create') {
-         db.query(`SELECT * FROM topic`, function (error, topics) {
-                var title = 'create';
+        db.query(`SELECT * FROM topic`, function (error, topics) {
+               db.query('SELECT * FROM author', function(error2, authors){
+              
+                   var title = 'create';
                 var list = template.list(topics);
                  var html = template.HTML(
                     title,
@@ -110,8 +116,10 @@ var app = http.createServer(function (request, response) {
                 <form action="/create_process" method='post'>
                     <p><input type="text" name="title" placeholder="title"></p>
                     <p>
-                    <textarea name="description" placeholder="description"></textarea>
+                    <textarea name="description"
+                    placeholder="description"></textarea>
                     </p>
+                    <p>${template.authorSelect(authors)}</p>
                     <p>
                     <input type="submit">
                     </p>
@@ -121,7 +129,8 @@ var app = http.createServer(function (request, response) {
                 );
                 response.writeHead(200);
                 response.end(html);
-         });
+        });
+        });
         
         //    fs.readdir('./data', function (err, filelist) {
         //         var title = 'WEB - create';
@@ -153,7 +162,7 @@ var app = http.createServer(function (request, response) {
         );
         request.on('end', function () {
             var post = qs.parse(body);
-            db.query(`INSERT INTO topic (title, description, created, author_id) VALUES(?,? ,NOW() ,?)`, [post.title, post.description, 1], function (error, result) {
+            db.query(`INSERT INTO topic (title, description, created, author_id) VALUES(?,? ,NOW() ,?)`, [post.title, post.description, post.author], function (error, result) {
                   if (error) {
                     throw error;
                 }
@@ -176,9 +185,10 @@ var app = http.createServer(function (request, response) {
                     throw error;
                 }
             db.query(`SELECT * FROM topic WHERE id=?`, [queryData.id], function (error2, topic) {
-                     if (error2) {
+                      if (error2) {
                     throw error2;
                 }
+               db.query('SELECT * FROM author', function(error2, authors){
                 var list = template.list(topics);
                 var html = template.HTML(
                     topic[0].title,
@@ -189,6 +199,7 @@ var app = http.createServer(function (request, response) {
             <p>
               <textarea name="description" placeholder="description">${topic[0].description}</textarea>
             </p>
+            <p>${template.authorSelect(authors,topic[0].author_id)}</p>
             <p>
               <input type="submit">
             </p>
@@ -198,6 +209,7 @@ var app = http.createServer(function (request, response) {
                 );
                 response.writeHead(200);
                 response.end(html);
+         });
          });
          });
     
@@ -243,7 +255,7 @@ var app = http.createServer(function (request, response) {
             var title = post.title;
             var description = post.description;
 
-            db.query(`UPDATE topic SET title=?, description=?, author_id=1 WHERE id=?`, [post.title, post.description, post.id], function (error, result) {
+            db.query(`UPDATE topic SET title=?, description=?, author_id=? WHERE id=?`, [post.title, post.description,post.author, post.id], function (error, result) {
                     response.writeHead(302, {location: encodeURI(`/?id=${post.id}`)});
                     response.end();
             });
@@ -271,12 +283,11 @@ var app = http.createServer(function (request, response) {
         );
         request.on('end', function () {
             var post = qs.parse(body);
-            var id = post.id;
-            var filteredId = path.parse(id).base;
-
-            fs.unlink(`data/${filteredId}`, function (err) {
-                
-                    response.writeHead(302, {Location: `/`});
+            db.query('DELETE FROM topic WHERE id=?', [post.id], function (error,result) {
+                if (error) {
+                    throw error;
+                }
+                  response.writeHead(302, {Location: `/`});
                     response.end();
             });
         
@@ -287,4 +298,4 @@ var app = http.createServer(function (request, response) {
         response.end('Not found');
     }
 });
-app.listen(3000);
+app.listen(4000);
