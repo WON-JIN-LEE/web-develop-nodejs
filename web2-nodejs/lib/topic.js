@@ -95,9 +95,11 @@ exports.create_process = function (request, response) {
                 request.destroy();
             }
         );
-        request.on('end', function () {
+    request.on('end', function () {
+            
             var post = qs.parse(body);
-            db.query(`INSERT INTO topic (title, description, created, author_id) VALUES(?,? ,NOW() ,?)`, [post.title, post.description, post.author], function (error, result) {
+        console.log(post);
+        db.query(`INSERT INTO topic (title, description, created, author_id) VALUES(?,? ,NOW() ,?)`, [post.title, post.description, post.author], function (error, result) {
                   if (error) {
                     throw error;
                 }
