@@ -1,0 +1,665 @@
+express()
+Creates an Express application. The express() function is a top-level function exported by the express module.
+
+var express = require('express')
+var app = express()
+Methods
+express.json([options])
+This middleware is available in Express v4.16.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming requests with JSON payloads and is based on body-parser.
+
+Returns middleware that only parses JSON and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body object containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.foo.toString() may fail in multiple ways, for example foo may not be there or may not be a string, and toString may not be a function and instead a string or other user-input.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+reviver	The reviver option is passed directly to JSON.parse as the second argument. You can find more information on this argument in the MDN documentation about JSON.parse.	Function	null
+strict	Enables or disables only accepting arrays and objects; when disabled will accept anything JSON.parse accepts.	Boolean	true
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like json), a mime type (like application/json), or a mime type with a wildcard (like */* or */json). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/json"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.raw([options])
+This middleware is available in Express v4.17.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming request payloads into a Buffer and is based on body-parser.
+
+Returns middleware that parses all bodies as a Buffer and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body Buffer containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.toString() may fail in multiple ways, for example stacking multiple parsers req.body may be from a different parser. Testing that req.body is a Buffer before calling buffer methods is recommended.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like bin), a mime type (like application/octet-stream), or a mime type with a wildcard (like */* or application/*). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/octet-stream"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.Router([options])
+Creates a new router object.
+
+var router = express.Router([options])
+The optional options parameter specifies the behavior of the router.
+
+Property	Description	Default	Availability
+caseSensitive	Enable case sensitivity.	Disabled by default, treating “/Foo” and “/foo” as the same.	 
+mergeParams	Preserve the req.params values from the parent router. If the parent and the child have conflicting param names, the child’s value take precedence.	false	4.5.0+
+strict	Enable strict routing.	Disabled by default, “/foo” and “/foo/” are treated the same by the router.	 
+You can add middleware and HTTP method routes (such as get, put, post, and so on) to router just like an application.
+
+For more information, see Router.
+
+express.static(root, [options])
+This is a built-in middleware function in Express. It serves static files and is based on serve-static.
+
+NOTE: For best results, use a reverse proxy cache to improve performance of serving static assets.
+
+The root argument specifies the root directory from which to serve static assets. The function determines the file to serve by combining req.url with the provided root directory. When a file is not found, instead of sending a 404 response, it instead calls next() to move on to the next middleware, allowing for stacking and fall-backs.
+
+The following table describes the properties of the options object. See also the example below.
+
+Property	Description	Type	Default
+dotfiles	Determines how dotfiles (files or directories that begin with a dot “.”) are treated.
+
+See dotfiles below.	String	“ignore”
+etag	Enable or disable etag generation
+
+NOTE: express.static always sends weak ETags.	Boolean	true
+extensions	Sets file extension fallbacks: If a file is not found, search for files with the specified extensions and serve the first one found. Example: ['html', 'htm'].	Mixed	false
+fallthrough	Let client errors fall-through as unhandled requests, otherwise forward a client error.
+
+See fallthrough below.	Boolean	true
+immutable	Enable or disable the immutable directive in the Cache-Control response header. If enabled, the maxAge option should also be specified to enable caching. The immutable directive will prevent supported clients from making conditional requests during the life of the maxAge option to check if the file has changed.	Boolean	false
+index	Sends the specified directory index file. Set to false to disable directory indexing.	Mixed	“index.html”
+lastModified	Set the Last-Modified header to the last modified date of the file on the OS.	Boolean	true
+maxAge	Set the max-age property of the Cache-Control header in milliseconds or a string in ms format.	Number	0
+redirect	Redirect to trailing “/” when the pathname is a directory.	Boolean	true
+setHeaders	Function for setting HTTP headers to serve with the file.
+
+See setHeaders below.	Function	 
+For more information, see Serving static files in Express. and Using middleware - Built-in middleware.
+
+dotfiles
+Possible values for this option are:
+
+“allow” - No special treatment for dotfiles.
+“deny” - Deny a request for a dotfile, respond with 403, then call next().
+“ignore” - Act as if the dotfile does not exist, respond with 404, then call next().
+NOTE: With the default value, it will not ignore files in a directory that begins with a dot.
+
+fallthrough
+When this option is true, client errors such as a bad request or a request to a non-existent file will cause this middleware to simply call next() to invoke the next middleware in the stack. When false, these errors (even 404s), will invoke next(err).
+
+Set this option to true so you can map multiple physical directories to the same web address or for routes to fill in non-existent files.
+
+Use false if you have mounted this middleware at a path designed to be strictly a single file system directory, which allows for short-circuiting 404s for less overhead. This middleware will also reply to all methods.
+
+setHeaders
+For this option, specify a function to set custom response headers. Alterations to the headers must occur synchronously.
+
+The signature of the function is:
+
+fn(res, path, stat)
+Arguments:
+
+res, the response object.
+path, the file path that is being sent.
+stat, the stat object of the file that is being sent.
+Example of express.static
+Here is an example of using the express.static middleware function with an elaborate options object:
+
+var options = {
+  dotfiles: 'ignore',
+  etag: false,
+  extensions: ['htm', 'html'],
+  index: false,
+  maxAge: '1d',
+  redirect: false,
+  setHeaders: function (res, path, stat) {
+    res.set('x-timestamp', Date.now())
+  }
+}
+
+app.use(express.static('public', options))
+express.text([options])
+This middleware is available in Express v4.17.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming request payloads into a string and is based on body-parser.
+
+Returns middleware that parses all bodies as a string and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body string containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.trim() may fail in multiple ways, for example stacking multiple parsers req.body may be from a different parser. Testing that req.body is a string before calling string methods is recommended.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+defaultCharset	Specify the default character set for the text content if the charset is not specified in the Content-Type header of the request.	String	"utf-8"
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like txt), a mime type (like text/plain), or a mime type with a wildcard (like */* or text/*). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"text/plain"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.urlencoded([options])
+This middleware is available in Express v4.16.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming requests with urlencoded payloads and is based on body-parser.
+
+Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option. This parser accepts only UTF-8 encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body object containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred. This object will contain key-value pairs, where the value can be a string or array (when extended is false), or any type (when extended is true).
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.foo.toString() may fail in multiple ways, for example foo may not be there or may not be a string, and toString may not be a function and instead a string or other user-input.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+extended	This option allows to choose between parsing the URL-encoded data with the querystring library (when false) or the qs library (when true). The “extended” syntax allows for rich objects and arrays to be encoded into the URL-encoded format, allowing for a JSON-like experience with URL-encoded. For more information, please see the qs library.	Boolean	true
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+parameterLimit	This option controls the maximum number of parameters that are allowed in the URL-encoded data. If a request contains more parameters than this value, an error will be raised.	Number	1000
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like urlencoded), a mime type (like application/x-www-form-urlencoded), or a mime type with a wildcard (like */x-www-form-urlencoded). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/x-www-form-urlencoded"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+Application
+The app object conventionally denotes the Express application. Create it by calling the top-level express() function exported by the Express module:
+
+var express = require('express')
+var app = express()
+
+app.get('/', function (req, res) {
+  res.send('hello world')
+})
+
+app.listen(3000)
+The app object has methods for
+
+Routing HTTP requests; see for example, app.METHOD and app.param.
+Configuring middleware; see app.route.
+Rendering HTML views; see app.render.
+Registering a template engine; see app.engine.
+It also has settings (properties) that affect how the application behaves; for more information, see Application settings.
+
+The Express application object can be referred from the request object and the response object as req.app, and res.app, respectively.
+
+Properties
+app.locals
+The app.locals object has properties that are local variables within the application.
+
+console.dir(app.locals.title)
+// => 'My App'
+
+console.dir(app.locals.email)
+// => 'me@myapp.com'
+Once set, the value of app.locals properties persist throughout the life of the application, in contrast with res.locals properties that are valid only for the lifetime of the request.
+
+You can access local variables in templates rendered within the application. This is useful for providing helper functions to templates, as well as application-level data. Local variables are available in middleware via req.app.locals (see req.app)
+
+app.locals.title = 'My App'
+app.locals.strftime = require('strftime')
+app.locals.email = 'me@myapp.com'
+app.mountpath
+The app.mountpath property contains one or more path patterns on which a sub-app was mounted.
+
+A sub-app is an instance of express that may be used for handling the request to a route.
+
+var express = require('express')
+
+var app = express() // the main app
+var admin = express() // the sub app
+
+admin.get('/', function (req, res) {
+  console.log(admin.mountpath) // /admin
+  res.send('Admin Homepage')
+})
+
+app.use('/admin', admin) // mount the sub app
+It is similar to the baseUrl property of the req object, except req.baseUrl returns the matched URL path, instead of the matched patterns.
+
+If a sub-app is mounted on multiple path patterns, app.mountpath returns the list of patterns it is mounted on, as shown in the following example.
+
+var admin = express()
+
+admin.get('/', function (req, res) {
+  console.dir(admin.mountpath) // [ '/adm*n', '/manager' ]
+  res.send('Admin Homepage')
+})
+
+var secret = express()
+secret.get('/', function (req, res) {
+  console.log(secret.mountpath) // /secr*t
+  res.send('Admin Secret')
+})
+
+admin.use('/secr*t', secret) // load the 'secret' router on '/secr*t', on the 'admin' sub app
+app.use(['/adm*n', '/manager'], admin) // load the 'admin' router on '/adm*n' and '/manager', on the parent app
+Events
+app.on('mount', callback(parent))
+The mount event is fired on a sub-app, when it is mounted on a parent app. The parent app is passed to the callback function.
+
+NOTE
+
+Sub-apps will:
+
+Not inherit the value of settings that have a default value. You must set the value in the sub-app.
+Inherit the value of settings with no default value.
+For details, see Application settings.
+
+var admin = express()
+
+admin.on('mount', function (parent) {
+  console.log('Admin Mounted')
+  console.log(parent) // refers to the parent app
+})
+
+admin.get('/', function (req, res) {
+  res.send('Admin Homepage')
+})
+
+app.use('/admin', admin)
+Methods
+app.all(path, callback [, callback ...])
+This method is like the standard app.METHOD() methods, except it matches all HTTP verbs.
+
+Arguments
+Argument	Description	Default
+path	The path for which the middleware function is invoked; can be any of:
+A string representing a path.
+A path pattern.
+A regular expression pattern to match paths.
+An array of combinations of any of the above.
+For examples, see Path examples.	'/' (root path)
+callback	Callback functions; can be:
+A middleware function.
+A series of middleware functions (separated by commas).
+An array of middleware functions.
+A combination of all of the above.
+You can provide multiple callback functions that behave just like middleware, except that these callbacks can invoke next('route') to bypass the remaining route callback(s). You can use this mechanism to impose pre-conditions on a route, then pass control to subsequent routes if there is no reason to proceed with the current route.
+
+Since router and app implement the middleware interface, you can use them as you would any other middleware function.
+
+For examples, see Middleware callback function examples.
+
+None
+Examples
+The following callback is executed for requests to /secret whether using GET, POST, PUT, DELETE, or any other HTTP request method:
+
+app.all('/secret', function (req, res, next) {
+  console.log('Accessing the secret section ...')
+  next() // pass control to the next handler
+})
+The app.all() method is useful for mapping “global” logic for specific path prefixes or arbitrary matches. For example, if you put the following at the top of all other route definitions, it requires that all routes from that point on require authentication, and automatically load a user. Keep in mind that these callbacks do not have to act as end-points: loadUser can perform a task, then call next() to continue matching subsequent routes.
+
+app.all('*', requireAuthentication, loadUser)
+Or the equivalent:
+
+app.all('*', requireAuthentication)
+app.all('*', loadUser)
+Another example is white-listed “global” functionality. The example is similar to the ones above, but it only restricts paths that start with “/api”:
+
+app.all('/api/*', requireAuthentication)
+app.delete(path, callback [, callback ...])
+Routes HTTP DELETE requests to the specified path with the specified callback functions. For more information, see the routing guide.
+
+Arguments
+Argument	Description	Default
+path	The path for which the middleware function is invoked; can be any of:
+A string representing a path.
+A path pattern.
+A regular expression pattern to match paths.
+An array of combinations of any of the above.
+For examples, see Path examples.	'/' (root path)
+callback	Callback functions; can be:
+A middleware function.
+A series of middleware functions (separated by commas).
+An array of middleware functions.
+A combination of all of the above.
+You can provide multiple callback functions that behave just like middleware, except that these callbacks can invoke next('route') to bypass the remaining route callback(s). You can use this mechanism to impose pre-conditions on a route, then pass control to subsequent routes if there is no reason to proceed with the current route.
+
+Since router and app implement the middleware interface, you can use them as you would any other middleware function.
+
+For examples, see Middleware callback function examples.
+
+None
+Example
+app.delete('/', function (req, res) {
+  res.send('DELETE request to homepage')
+})express()
+Creates an Express application. The express() function is a top-level function exported by the express module.
+
+var express = require('express')
+var app = express()
+Methods
+express.json([options])
+This middleware is available in Express v4.16.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming requests with JSON payloads and is based on body-parser.
+
+Returns middleware that only parses JSON and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body object containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.foo.toString() may fail in multiple ways, for example foo may not be there or may not be a string, and toString may not be a function and instead a string or other user-input.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+reviver	The reviver option is passed directly to JSON.parse as the second argument. You can find more information on this argument in the MDN documentation about JSON.parse.	Function	null
+strict	Enables or disables only accepting arrays and objects; when disabled will accept anything JSON.parse accepts.	Boolean	true
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like json), a mime type (like application/json), or a mime type with a wildcard (like */* or */json). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/json"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.raw([options])
+This middleware is available in Express v4.17.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming request payloads into a Buffer and is based on body-parser.
+
+Returns middleware that parses all bodies as a Buffer and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body Buffer containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.toString() may fail in multiple ways, for example stacking multiple parsers req.body may be from a different parser. Testing that req.body is a Buffer before calling buffer methods is recommended.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like bin), a mime type (like application/octet-stream), or a mime type with a wildcard (like */* or application/*). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/octet-stream"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.Router([options])
+Creates a new router object.
+
+var router = express.Router([options])
+The optional options parameter specifies the behavior of the router.
+
+Property	Description	Default	Availability
+caseSensitive	Enable case sensitivity.	Disabled by default, treating “/Foo” and “/foo” as the same.	 
+mergeParams	Preserve the req.params values from the parent router. If the parent and the child have conflicting param names, the child’s value take precedence.	false	4.5.0+
+strict	Enable strict routing.	Disabled by default, “/foo” and “/foo/” are treated the same by the router.	 
+You can add middleware and HTTP method routes (such as get, put, post, and so on) to router just like an application.
+
+For more information, see Router.
+
+express.static(root, [options])
+This is a built-in middleware function in Express. It serves static files and is based on serve-static.
+
+NOTE: For best results, use a reverse proxy cache to improve performance of serving static assets.
+
+The root argument specifies the root directory from which to serve static assets. The function determines the file to serve by combining req.url with the provided root directory. When a file is not found, instead of sending a 404 response, it instead calls next() to move on to the next middleware, allowing for stacking and fall-backs.
+
+The following table describes the properties of the options object. See also the example below.
+
+Property	Description	Type	Default
+dotfiles	Determines how dotfiles (files or directories that begin with a dot “.”) are treated.
+
+See dotfiles below.	String	“ignore”
+etag	Enable or disable etag generation
+
+NOTE: express.static always sends weak ETags.	Boolean	true
+extensions	Sets file extension fallbacks: If a file is not found, search for files with the specified extensions and serve the first one found. Example: ['html', 'htm'].	Mixed	false
+fallthrough	Let client errors fall-through as unhandled requests, otherwise forward a client error.
+
+See fallthrough below.	Boolean	true
+immutable	Enable or disable the immutable directive in the Cache-Control response header. If enabled, the maxAge option should also be specified to enable caching. The immutable directive will prevent supported clients from making conditional requests during the life of the maxAge option to check if the file has changed.	Boolean	false
+index	Sends the specified directory index file. Set to false to disable directory indexing.	Mixed	“index.html”
+lastModified	Set the Last-Modified header to the last modified date of the file on the OS.	Boolean	true
+maxAge	Set the max-age property of the Cache-Control header in milliseconds or a string in ms format.	Number	0
+redirect	Redirect to trailing “/” when the pathname is a directory.	Boolean	true
+setHeaders	Function for setting HTTP headers to serve with the file.
+
+See setHeaders below.	Function	 
+For more information, see Serving static files in Express. and Using middleware - Built-in middleware.
+
+dotfiles
+Possible values for this option are:
+
+“allow” - No special treatment for dotfiles.
+“deny” - Deny a request for a dotfile, respond with 403, then call next().
+“ignore” - Act as if the dotfile does not exist, respond with 404, then call next().
+NOTE: With the default value, it will not ignore files in a directory that begins with a dot.
+
+fallthrough
+When this option is true, client errors such as a bad request or a request to a non-existent file will cause this middleware to simply call next() to invoke the next middleware in the stack. When false, these errors (even 404s), will invoke next(err).
+
+Set this option to true so you can map multiple physical directories to the same web address or for routes to fill in non-existent files.
+
+Use false if you have mounted this middleware at a path designed to be strictly a single file system directory, which allows for short-circuiting 404s for less overhead. This middleware will also reply to all methods.
+
+setHeaders
+For this option, specify a function to set custom response headers. Alterations to the headers must occur synchronously.
+
+The signature of the function is:
+
+fn(res, path, stat)
+Arguments:
+
+res, the response object.
+path, the file path that is being sent.
+stat, the stat object of the file that is being sent.
+Example of express.static
+Here is an example of using the express.static middleware function with an elaborate options object:
+
+var options = {
+  dotfiles: 'ignore',
+  etag: false,
+  extensions: ['htm', 'html'],
+  index: false,
+  maxAge: '1d',
+  redirect: false,
+  setHeaders: function (res, path, stat) {
+    res.set('x-timestamp', Date.now())
+  }
+}
+
+app.use(express.static('public', options))
+express.text([options])
+This middleware is available in Express v4.17.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming request payloads into a string and is based on body-parser.
+
+Returns middleware that parses all bodies as a string and only looks at requests where the Content-Type header matches the type option. This parser accepts any Unicode encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body string containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred.
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.trim() may fail in multiple ways, for example stacking multiple parsers req.body may be from a different parser. Testing that req.body is a string before calling string methods is recommended.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+defaultCharset	Specify the default character set for the text content if the charset is not specified in the Content-Type header of the request.	String	"utf-8"
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like txt), a mime type (like text/plain), or a mime type with a wildcard (like */* or text/*). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"text/plain"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+express.urlencoded([options])
+This middleware is available in Express v4.16.0 onwards.
+
+This is a built-in middleware function in Express. It parses incoming requests with urlencoded payloads and is based on body-parser.
+
+Returns middleware that only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option. This parser accepts only UTF-8 encoding of the body and supports automatic inflation of gzip and deflate encodings.
+
+A new body object containing the parsed data is populated on the request object after the middleware (i.e. req.body), or an empty object ({}) if there was no body to parse, the Content-Type was not matched, or an error occurred. This object will contain key-value pairs, where the value can be a string or array (when extended is false), or any type (when extended is true).
+
+As req.body’s shape is based on user-controlled input, all properties and values in this object are untrusted and should be validated before trusting. For example, req.body.foo.toString() may fail in multiple ways, for example foo may not be there or may not be a string, and toString may not be a function and instead a string or other user-input.
+
+The following table describes the properties of the optional options object.
+
+Property	Description	Type	Default
+extended	This option allows to choose between parsing the URL-encoded data with the querystring library (when false) or the qs library (when true). The “extended” syntax allows for rich objects and arrays to be encoded into the URL-encoded format, allowing for a JSON-like experience with URL-encoded. For more information, please see the qs library.	Boolean	true
+inflate	Enables or disables handling deflated (compressed) bodies; when disabled, deflated bodies are rejected.	Boolean	true
+limit	Controls the maximum request body size. If this is a number, then the value specifies the number of bytes; if it is a string, the value is passed to the bytes library for parsing.	Mixed	"100kb"
+parameterLimit	This option controls the maximum number of parameters that are allowed in the URL-encoded data. If a request contains more parameters than this value, an error will be raised.	Number	1000
+type	This is used to determine what media type the middleware will parse. This option can be a string, array of strings, or a function. If not a function, type option is passed directly to the type-is library and this can be an extension name (like urlencoded), a mime type (like application/x-www-form-urlencoded), or a mime type with a wildcard (like */x-www-form-urlencoded). If a function, the type option is called as fn(req) and the request is parsed if it returns a truthy value.	Mixed	"application/x-www-form-urlencoded"
+verify	This option, if supplied, is called as verify(req, res, buf, encoding), where buf is a Buffer of the raw request body and encoding is the encoding of the request. The parsing can be aborted by throwing an error.	Function	undefined
+Application
+The app object conventionally denotes the Express application. Create it by calling the top-level express() function exported by the Express module:
+
+var express = require('express')
+var app = express()
+
+app.get('/', function (req, res) {
+  res.send('hello world')
+})
+
+app.listen(3000)
+The app object has methods for
+
+Routing HTTP requests; see for example, app.METHOD and app.param.
+Configuring middleware; see app.route.
+Rendering HTML views; see app.render.
+Registering a template engine; see app.engine.
+It also has settings (properties) that affect how the application behaves; for more information, see Application settings.
+
+The Express application object can be referred from the request object and the response object as req.app, and res.app, respectively.
+
+Properties
+app.locals
+The app.locals object has properties that are local variables within the application.
+
+console.dir(app.locals.title)
+// => 'My App'
+
+console.dir(app.locals.email)
+// => 'me@myapp.com'
+Once set, the value of app.locals properties persist throughout the life of the application, in contrast with res.locals properties that are valid only for the lifetime of the request.
+
+You can access local variables in templates rendered within the application. This is useful for providing helper functions to templates, as well as application-level data. Local variables are available in middleware via req.app.locals (see req.app)
+
+app.locals.title = 'My App'
+app.locals.strftime = require('strftime')
+app.locals.email = 'me@myapp.com'
+app.mountpath
+The app.mountpath property contains one or more path patterns on which a sub-app was mounted.
+
+A sub-app is an instance of express that may be used for handling the request to a route.
+
+var express = require('express')
+
+var app = express() // the main app
+var admin = express() // the sub app
+
+admin.get('/', function (req, res) {
+  console.log(admin.mountpath) // /admin
+  res.send('Admin Homepage')
+})
+
+app.use('/admin', admin) // mount the sub app
+It is similar to the baseUrl property of the req object, except req.baseUrl returns the matched URL path, instead of the matched patterns.
+
+If a sub-app is mounted on multiple path patterns, app.mountpath returns the list of patterns it is mounted on, as shown in the following example.
+
+var admin = express()
+
+admin.get('/', function (req, res) {
+  console.dir(admin.mountpath) // [ '/adm*n', '/manager' ]
+  res.send('Admin Homepage')
+})
+
+var secret = express()
+secret.get('/', function (req, res) {
+  console.log(secret.mountpath) // /secr*t
+  res.send('Admin Secret')
+})
+
+admin.use('/secr*t', secret) // load the 'secret' router on '/secr*t', on the 'admin' sub app
+app.use(['/adm*n', '/manager'], admin) // load the 'admin' router on '/adm*n' and '/manager', on the parent app
+Events
+app.on('mount', callback(parent))
+The mount event is fired on a sub-app, when it is mounted on a parent app. The parent app is passed to the callback function.
+
+NOTE
+
+Sub-apps will:
+
+Not inherit the value of settings that have a default value. You must set the value in the sub-app.
+Inherit the value of settings with no default value.
+For details, see Application settings.
+
+var admin = express()
+
+admin.on('mount', function (parent) {
+  console.log('Admin Mounted')
+  console.log(parent) // refers to the parent app
+})
+
+admin.get('/', function (req, res) {
+  res.send('Admin Homepage')
+})
+
+app.use('/admin', admin)
+Methods
+app.all(path, callback [, callback ...])
+This method is like the standard app.METHOD() methods, except it matches all HTTP verbs.
+
+Arguments
+Argument	Description	Default
+path	The path for which the middleware function is invoked; can be any of:
+A string representing a path.
+A path pattern.
+A regular expression pattern to match paths.
+An array of combinations of any of the above.
+For examples, see Path examples.	'/' (root path)
+callback	Callback functions; can be:
+A middleware function.
+A series of middleware functions (separated by commas).
+An array of middleware functions.
+A combination of all of the above.
+You can provide multiple callback functions that behave just like middleware, except that these callbacks can invoke next('route') to bypass the remaining route callback(s). You can use this mechanism to impose pre-conditions on a route, then pass control to subsequent routes if there is no reason to proceed with the current route.
+
+Since router and app implement the middleware interface, you can use them as you would any other middleware function.
+
+For examples, see Middleware callback function examples.
+
+None
+Examples
+The following callback is executed for requests to /secret whether using GET, POST, PUT, DELETE, or any other HTTP request method:
+
+app.all('/secret', function (req, res, next) {
+  console.log('Accessing the secret section ...')
+  next() // pass control to the next handler
+})
+The app.all() method is useful for mapping “global” logic for specific path prefixes or arbitrary matches. For example, if you put the following at the top of all other route definitions, it requires that all routes from that point on require authentication, and automatically load a user. Keep in mind that these callbacks do not have to act as end-points: loadUser can perform a task, then call next() to continue matching subsequent routes.
+
+app.all('*', requireAuthentication, loadUser)
+Or the equivalent:
+
+app.all('*', requireAuthentication)
+app.all('*', loadUser)
+Another example is white-listed “global” functionality. The example is similar to the ones above, but it only restricts paths that start with “/api”:
+
+app.all('/api/*', requireAuthentication)
+app.delete(path, callback [, callback ...])
+Routes HTTP DELETE requests to the specified path with the specified callback functions. For more information, see the routing guide.
+
+Arguments
+Argument	Description	Default
+path	The path for which the middleware function is invoked; can be any of:
+A string representing a path.
+A path pattern.
+A regular expression pattern to match paths.
+An array of combinations of any of the above.
+For examples, see Path examples.	'/' (root path)
+callback	Callback functions; can be:
+A middleware function.
+A series of middleware functions (separated by commas).
+An array of middleware functions.
+A combination of all of the above.
+You can provide multiple callback functions that behave just like middleware, except that these callbacks can invoke next('route') to bypass the remaining route callback(s). You can use this mechanism to impose pre-conditions on a route, then pass control to subsequent routes if there is no reason to proceed with the current route.
+
+Since router and app implement the middleware interface, you can use them as you would any other middleware function.
+
+For examples, see Middleware callback function examples.
+
+None
+Example
+app.delete('/', function (req, res) {
+  res.send('DELETE request to homepage')
+})
